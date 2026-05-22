@@ -74,7 +74,7 @@ div[data-testid="stNumberInputContainer"]{
     outline: none;  
 }
 .st-key-basic_card, .st-key-body_card, .st-key-blood_card,
-.st-key-lifestyle_card, .st-key-bp_card {
+.st-key-lifestyle_card, .st-key-bp_card, .st-key-diabetes_card {
     background: rgba(255,255,255,0.55);
     backdrop-filter: blur(16px);
 
@@ -100,48 +100,32 @@ div[data-testid="stHorizontalBlock"]{
 }
 
 .output-container{
-    background-color: rgb(7 16 45);
-    background: linear-gradient(to top right, rgb(54, 67, 108), rgb(119, 123, 170));
-    background: -webkit-linear-gradient(to top right, rgb(7 16 45), rgb(58 60 84));
-    display: flex;
-    flex-direction: column;
-    padding: 20px;
+    background: white;
+    padding-block: 2rem;
     border-radius: 10px;
-    border: 2px solid black;
-    color: white;
-    box-shadow: 4px 4px black !important;
-    font-size: 18px;
+    transition: border-radius 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    margin-bottom: 30px;
+    margin-top: 30px;
+    
+    box-shadow: inset 0 -3em 3em rgba(0,0,0,0.1),
+                0 0  0 2px rgb(190, 190, 190),
+                    0.3em 0.3em 1em rgba(0,0,0,0.3);
 } 
-.output-container::before {
-    content: "";
 
-    position: absolute;
-    top: -50%;
-    left: -20%;
-
-    width: 60%;
-    height: 200%;
-
-    background: linear-gradient(
-        to right,
-        rgba(255,255,255,0),
-        rgba(255,255,255,0.18),
-        rgba(255,255,255,0)
-    );
-
-    transform: rotate(25deg);
-
-    pointer-events: none;
-}
 .h2{
     color: #fbfeff;
     padding-left: 40px;
 }
 strong{
-    color: rgb(190, 247, 255);
+    color: rgb(72, 100, 104);
 }
 .outputs{
     padding-left: 60px;
+    font-size: 16px;
+}
+.pred{
+    font-weight: bold;
 }
 #add_to_cal{
     margin-top: 20px;

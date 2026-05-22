@@ -43,7 +43,7 @@ def get_risk_level(glucose, hba1c, bmi, age=35, hypertension=False, smoking=Fals
   
 RECOMMENDATIONS = {
     "high": {
-        "label": "High Risk",
+        "label": "Diabetes Risk: High",
         "summary": "Your indicators suggest elevated diabetes risk. Immediate lifestyle changes are strongly advised.",
         "daily": [
             ("07:00 AM", "Morning walk – 30 minutes", "exercise"),
@@ -74,7 +74,7 @@ RECOMMENDATIONS = {
     },
 
     "moderate": {
-        "label": "Moderate Risk",
+        "label": "Diabetes Risk: Moderate",
         "summary": "Some indicators are in a pre-diabetes range. Proactive habits now can prevent progression.",
         "daily": [
             ("07:30 AM", "Morning walk or light jog – 20 minutes", "exercise"),
@@ -100,7 +100,7 @@ RECOMMENDATIONS = {
     },
 
     "low": {
-        "label": "Low Risk",
+        "label": "Diabetes Risk: Low",
         "summary": "Your diabetes risk is low. Keep up your healthy habits and monitor occasionally.",
         "daily": [
             ("07:00 AM", "Any physical activity – 20–30 minutes", "exercise"),

@@ -2,6 +2,7 @@ import streamlit as st
 import joblib
 import pandas as pd
 from pathlib import Path
+import time
 
 from recommendations.diabetes import get_diabetes_report
 
@@ -66,7 +67,7 @@ def set_one_hot_column(input_data, column_name):
         input_data[column_name] = 1
     return input_data
 
-
+results_placeholder = st.empty()
 with st.form("health_form"):
    with st.container(key="basic_info"):
         with st.container(border=True, key="basic_card"):
@@ -132,23 +133,26 @@ with st.form("health_form"):
 
         submit = st.form_submit_button("Predict All Health Risks")
     
-    # with st.container():
-    #     st.markdown("""
-    #         <div class="output-container">
-    #             <h2>Prediction Results</h2>
-    #             <div class="outputs">
-    #                 <p>{diabetes_output}</p>
-    #                 <p>{bp_output}</p>
-    #                 <p>{cholesterol_output}</p>
-    #                 <p>{cardio_output}</p>
-    #                 <p>Lifestyle Score: 3{lifestyle_score}</p>
-    #                 <p>{lifestyle_output}</p>
-    #             </div>
-    #         </div>
-    #     """, unsafe_allow_html=True)
+        # with st.container():
+        #     st.markdown("""
+        #         <div class="output-container">
+        #             <p class="serif-italic pred">Prediction Summary</p>
+        #             <div class="outputs">
+        #                 <p>{diabetes_output}</p>
+        #                 <p>{bp_output}</p>
+        #                 <p>{cholesterol_output}</p>
+        #                 <p>{cardio_output}</p>
+        #                 <p>Lifestyle Score: 3{lifestyle_score}</p>
+        #                 <p>{lifestyle_output}</p>
+        #             </div>
+        #         </div>
+        #     """, unsafe_allow_html=True)
 
 
 if submit:
+    with st.spinner("Analyzing your health profile..."):
+        time.sleep(1.2)
+        
     lifestyle_score = exercise_binary - alcohol_binary - smoking_binary
     
     height_inches = feet*12 + inches
@@ -237,7 +241,9 @@ if submit:
         "exercise": exercise_binary,
         "lifestyle_score": lifestyle_score
     }])
-
+    
+    
+        
     cardio_prediction = cardio_model.predict(cardio_input)[0]
 
    
@@ -256,6 +262,26 @@ if submit:
     else:
         lifestyle_output = "Consider reducing smoking/alcohol and increasing physical activity."
     
+    
+    st.title("Health Report and Recommendations")
+    
+    with st.container():
+        st.markdown(f"""
+            <div class="output-container">
+                <div class="outputs">
+                    <p class="serif-italic">Result Summary</p>
+                    <p>Diabetes Risk: <strong>{diabetes_output}</strong></p>
+                    <p>Blood Pressure Category: <strong>{bp_output}</strong></p>
+                    <p>Cholesterol Level: <strong>{cholesterol_output}</strong></p>
+                    <p>Cardiovascular Risk: <strong>{cardio_output}</strong></p>
+                    <p>Lifestyle Score: <strong>{lifestyle_score}</strong></p>
+                    <p>Lifestyle Recommendation: <strong>{lifestyle_output}</strong></p>
+                </div>
+            </div>
+        """, unsafe_allow_html=True)
+        
+    
+    
     cardio_recs = cardio_recommendation(cardio_prediction)
     cholesterol_recs = cholesterol_recommendation(cholesterol_prediction)
     bp_recs = bp_recommendation(bp_prediction-1)
@@ -266,7 +292,34 @@ if submit:
         age=age,
         hypertension= (bp_output=="Normal"),
         smoking=smoking == "Yes")
+    
+    st.markdown(f"""
+    <div class="result-card">
+        <h2>{diabetes_recs["label"]}</h2>
+        <p>{diabetes_recs["summary"]}</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2, gap="large")
+
+    with col1:
+        with st.container(border=True):
+
+            st.subheader("Daily Schedule")
+
+            for time, task, category in diabetes_recs["daily"]:
+                st.write(f"**{time}** [{category.upper()}] — {task}")
+            st.button("Add to Calendar", key="diabetes_add_cal")
+            
+    with col2:
+        with st.container(border=True):
+
+            st.subheader("Personalized Health Tips")
+
+            for tip in diabetes_recs["tips"]:
+                st.write(f"- {tip}")
     # cardio recs
+    
     st.markdown(f"""
     <div class="output-card">
         <h2>{cardio_recs["risk_level"]}</h2>
@@ -274,13 +327,22 @@ if submit:
     </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("Daily Schedule")
-    for time, category, task in cardio_recs["daily_schedule"]:
-        st.write(f"**{time}** {category} — {task}")
+    col1, col2 = st.columns(2, gap="large")
 
-    st.subheader("Personalized Health Tips")
-    for tip in cardio_recs["tips"]:
-        st.write(f"- {tip}")
+    with col1:
+        with st.container(border=True):
+            st.subheader("Daily Schedule")
+
+            for time, category, task in cardio_recs["daily_schedule"]:
+                st.write(f"**{time}** {category} — {task}")
+            st.button("Add to Calendar", key="cardio_add_cal")
+
+    with col2:
+        with st.container(border=True):
+            st.subheader("Personalized Health Tips")
+
+            for tip in cardio_recs["tips"]:
+                st.write(f"- {tip}")
     # end of cardio recs
     
     # cholesterol recs
@@ -291,13 +353,22 @@ if submit:
     </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("Daily Schedule")
-    for time, category, task in cholesterol_recs["daily_schedule"]:
-        st.write(f"**{time}** {category} — {task}")
+    col1, col2 = st.columns(2, gap="large")
 
-    st.subheader("Personalized Health Tips")
-    for tip in cholesterol_recs["tips"]:
-        st.write(f"- {tip}")
+    with col1:
+        with st.container(border=True):
+            st.subheader("Daily Schedule")
+
+            for time, category, task in cholesterol_recs["daily_schedule"]:
+                st.write(f"**{time}** {category} — {task}")
+            st.button("Add to Calendar", key="chol_add_cal")
+
+    with col2:
+        with st.container(border=True):
+            st.subheader("Personalized Health Tips")
+
+            for tip in cholesterol_recs["tips"]:
+                st.write(f"- {tip}")
     # end of cholesterol recs
     
      # bp recs
@@ -308,30 +379,26 @@ if submit:
     </div>
     """, unsafe_allow_html=True)
 
-    st.subheader("Daily Schedule")
-    for time, category, task in bp_recs["daily_schedule"]:
-        st.write(f"**{time}** {category} — {task}")
+    col1, col2 = st.columns(2, gap="large")
 
-    st.subheader("Personalized Health Tips")
-    for tip in bp_recs["tips"]:
-        st.write(f"- {tip}")
+    with col1:
+        with st.container(border=True):
+            st.subheader("Daily Schedule")
+
+            for time, category, task in bp_recs["daily_schedule"]:
+                st.write(f"**{time}** {category} — {task}")
+            st.button("Add to Calendar", key="bp_add_cal")
+            
+
+    with col2:
+        with st.container(border=True):
+            st.subheader("Personalized Health Tips")
+
+            for tip in bp_recs["tips"]:
+                st.write(f"- {tip}")
     # end of bp recs
     
     
     
     
-    with st.container():
-        st.markdown(f"""
-            <div class="output-container">
-                <div class="outputs">
-                    <p class="serif-italic">Prediction Summary</p>
-                    <p>Diabetes Risk: <strong>{diabetes_output}</strong></p>
-                    <p>Blood Pressure Category: <strong>{bp_output}</strong></p>
-                    <p>Cholesterol Level: <strong>{cholesterol_output}</strong></p>
-                    <p>Cardiovascular Risk: <strong>{cardio_output}</strong></p>
-                    <p>Lifestyle Score: <strong>{lifestyle_score}</strong></p>
-                    <p>Lifestyle Recommendation: <strong>{lifestyle_output}</strong></p>
-                </div>
-                <button id="add_to_cal">Add to Calendar</button>
-            </div>
-        """, unsafe_allow_html=True)
+    

@@ -3,7 +3,7 @@ def cholesterol_recommendation(chol_pred):
     reports = {
 
         0: {
-            "risk_level": "Healthy Cholesterol Level",
+            "risk_level": "Cholesterol Level: Healthy",
             "summary":
                 "Your cholesterol indicators appear to be within a healthy range. "
                 "Continue maintaining a balanced lifestyle and healthy eating habits.",
@@ -40,7 +40,7 @@ def cholesterol_recommendation(chol_pred):
 
 
         1: {
-            "risk_level": "Moderate Cholesterol Risk",
+            "risk_level": "Cholesterol Risk: Moderate",
             "summary":
                 "Your cholesterol indicators suggest mildly elevated cholesterol levels. "
                 "Lifestyle improvements are recommended to reduce future cardiovascular risk.",
@@ -79,7 +79,7 @@ def cholesterol_recommendation(chol_pred):
 
 
         2: {
-            "risk_level": "High Cholesterol Risk",
+            "risk_level": "Cholesterol Risk: High",
             "summary":
                 "Your indicators suggest high cholesterol levels, which may increase the risk "
                 "of heart disease and cardiovascular complications. Immediate lifestyle changes "

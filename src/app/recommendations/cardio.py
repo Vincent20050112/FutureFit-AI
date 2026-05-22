@@ -3,7 +3,7 @@ def cardio_recommendation(cardio_pred):
     reports = {
 
         0: {
-            "risk_level": "Low Cardiovascular Risk",
+            "risk_level": "Cardiovascular Risk: Low",
 
             "summary":
                 "Your indicators suggest a lower likelihood of cardiovascular disease. "
@@ -41,7 +41,7 @@ def cardio_recommendation(cardio_pred):
 
 
         1: {
-            "risk_level": "High Cardiovascular Risk",
+            "risk_level": "Cardiovascular Risk: High",
 
             "summary":
                 "Your indicators suggest an elevated risk of cardiovascular disease. "
