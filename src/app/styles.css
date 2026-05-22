@@ -1,0 +1,220 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400;1,700&display=swap');
+
+.serif-italic {
+    font-family: 'Playfair Display', serif;
+    /* font-style: italic; */
+    font-weight: bold;
+    font-size: 30px !important;
+    margin-top: 15px;
+}
+
+.stApp {
+    background-color: white;
+    color: black;
+}
+
+.st-key-basic_info {
+    --input-focus: #2d8cf0;
+    --font-color: #323232;
+    --font-color-sub: #666;
+    --bg-color: #fff;
+    --main-color: #323232;
+    padding: 20px !important;
+    background: rgb(199, 213, 221) !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    justify-content: center !important;
+    gap: 20px !important;
+    border-radius: 5px !important;
+    border: 2px solid var(--main-color) !important;
+    box-shadow: 4px 4px var(--main-color) !important;
+} 
+
+label[data-testid="stWidgetLabel"] p  {
+    color: rgb(58 60 84);
+    font-size: 18px;
+
+}
+[data-testid="stMarkdownContainer"] h3{
+    color: rgb(58 60 84);
+}
+button[data-testid^="stBaseButton-segmented_control"] p {
+    color: black !important;
+}
+
+div[data-testid="stForm"] {
+    border:none;
+}
+div[data-testid="stMainBlockContainer"]{
+    max-width: 100%;
+    padding-inline: 10rem;
+}
+div[data-testid="stLayoutWrapper"]:has(div[data-testid="stForm"]){
+    border: none;
+}
+div[data-testid="stNumberInputContainer"]{
+    max-width: 150px;  
+    border-radius: 5px;
+    border: 2px solid var(--main-color);
+    background-color: var(--bg-color);
+    box-shadow: 4px 4px var(--main-color);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--font-color);
+    outline: none;  
+}
+div[data-testid="stSelectbox"] > div{
+    max-width: 150px;  
+    border-radius: 5px;
+    border: 2px solid var(--main-color);
+    background-color: var(--bg-color);
+    box-shadow: 4px 4px var(--main-color);
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--font-color);
+    outline: none;
+}
+
+div[data-testid="stHorizontalBlock"]{
+    gap: 20px;
+}
+
+.output-container{
+    background-color: rgb(7 16 45);
+    background: linear-gradient(to top right, rgb(54, 67, 108), rgb(119, 123, 170));
+    background: -webkit-linear-gradient(to top right, rgb(7 16 45), rgb(58 60 84));
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    border-radius: 10px;
+    border: 2px solid black;
+    color: white;
+    box-shadow: 4px 4px black !important;
+    font-size: 18px;
+} 
+
+.h2{
+    color: #fbfeff;
+    padding-left: 40px;
+}
+strong{
+    color: rgb(190, 247, 255);
+}
+.outputs{
+    padding-left: 60px;
+}
+#add_to_cal{
+    margin-top: 20px;
+    margin-left: 40px;
+    background: rgb(101, 92, 125);
+    color: white;
+    font-style: italic;
+    padding: 20px 60px 20px 20px;
+    font-size: 20px;
+    max-width: fit-content;
+    border-radius: 50px;
+    border: black 2px black;
+    box-shadow: 4px 4px black !important;
+    position: relative;
+    transition: all 0.3s ease;
+}
+button[kind="secondaryFormSubmit"] {
+    margin-top: 20px;
+    background: rgb(108, 147, 156);
+    color: white;
+    font-style: italic;
+    padding: 20px 60px 20px 20px;
+    font-size: 30px;
+
+    border-radius: 50px;
+
+    box-shadow: 4px 4px var(--main-color) !important;
+
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+/* arrow */
+button[kind="secondaryFormSubmit"]::after, #add_to_cal::after {
+    content: "→";
+
+    position: absolute;
+    right: 25px;
+    top: 50%;
+
+    transform: translateY(-50%) translateX(-10px);
+
+    opacity: 0;
+
+    transition: all 0.3s ease;
+}
+
+/* hover */
+button[kind="secondaryFormSubmit"]:hover, #add_to_cal:hover {
+    background: black;
+    color: white;
+
+    padding-right: 80px;
+
+    transform: translateY(-2px);
+}
+
+/* reveal arrow */
+button[kind="secondaryFormSubmit"]:hover::after {
+    opacity: 1;
+    transform: translateY(-50%) translateX(0);
+}
+[data-testid="stHorizontalBlock"] {
+    gap: 0.25rem !important;
+}
+
+[data-testid="stHorizontalBlock"] > div {
+    width: calc(50% - 0.125rem) !important;
+    flex: 1 1 calc(50% - 0.125rem) !important;
+}
+
+/* Default segmented buttons */
+div[role="radiogroup"] button[kind="segmented_control"] {
+    background-color: white !important;
+    color: black !important;
+    border: 2px solid rgba(49,51,63,0.2) !important;
+    border-color: #000000 !important;
+    width: 100px;
+    height: 40px;
+    font-size: 20px;
+    box-shadow: 4px 4px var(--main-color) !important;
+}
+
+/* Hover */
+div[role="radiogroup"] button[kind="segmented_control"]:hover {
+    background-color: #cfedfc !important;
+    color: black!important;
+    border-color: #000000 !important;
+    border: 2px solid black;
+    width: 100px;
+    height: 40px;
+    /* box-shadow: 4px 4px var(--main-color) !important; */
+}
+
+/* Selected */
+div[role="radiogroup"] button[kind="segmented_controlActive"] {
+    background-color: #cfedfc !important;
+    color: black!important;
+    border-color: #000000 !important;
+    border: 2px solid black;
+    width: 100px;
+    height: 40px;
+    box-shadow: 4px 4px var(--main-color) !important;
+}
+
+/* Keep selected blue on hover */
+div[role="radiogroup"] button[kind="segmented_controlActive"]:hover {
+    background-color: #cfedfc !important;
+    color: black!important;
+    border-color: #000000 !important;
+    border: 2px solid black;
+    width: 100px;
+    height: 40px;
+    box-shadow: 4px 4px var(--main-color) !important;
+}
