@@ -2,6 +2,13 @@ import streamlit as st
 import joblib
 import pandas as pd
 from pathlib import Path
+
+from recommendations.diabetes import get_diabetes_report
+
+from recommendations.cardio import cardio_recommendation
+from recommendations.bp import bp_recommendation
+from recommendations.cholesterol import cholesterol_recommendation
+
 BASE_DIR = Path(__file__).resolve().parents[2]
 MODEL_DIR = BASE_DIR / "saved_models"
 
@@ -14,9 +21,29 @@ st.set_page_config(
     layout="centered"
 )
 
-st.title("🩺 FutureFit AI")
-st.write("Enter your health details once and get predictions for multiple health risks.")
+col1, col2 = st.columns([2, 1])
 
+with col1:
+
+    st.title("FutureFit AI")
+
+    st.markdown(
+        '''
+        <div class="tagline">
+            Helping you stay <strong class="mytext"> one step ahead </strong> of your health.
+        </div>
+        ''',
+        unsafe_allow_html=True
+    )
+
+    st.write(
+        "Enter your health details once and get predictions for multiple health risks."
+    )
+    
+    
+
+with col2:
+    st.image("../run.jpeg", use_container_width=True)
 
 def set_bmi_category(input_data, bmi_value):
     if bmi_value < 18.5:
@@ -42,64 +69,66 @@ def set_one_hot_column(input_data, column_name):
 
 with st.form("health_form"):
    with st.container(key="basic_info"):
-    
-        st.markdown('<p class="serif-italic">Basic Info</p>', unsafe_allow_html=True)
-        col1, col2 = st.columns(2)
-        with col1:
-            age = st.number_input("Age", min_value=1, max_value=120, value=25)
-        with col2:
-            gender = st.selectbox("Gender", ["Male", "Female", "Other"])
+        with st.container(border=True, key="basic_card"):
+            st.markdown('<p class="serif-italic">1. Basic Info</p>', unsafe_allow_html=True)
+            col1, col2 = st.columns(2)
+            with col1:
+                age = st.number_input("Age", min_value=1, max_value=120, value=25)
+            with col2:
+                gender = st.selectbox("Gender", ["Male", "Female", "Other"])
 
 
-   
-        st.markdown('<p class="serif-italic">Body Measurements</p>', unsafe_allow_html=True)
-        col1, col2 = st.columns([3,2], vertical_alignment="bottom")
-        with col1:
-            st.write('Height')
-            hcol1, hcol2 = st.columns(2)
-        
-            with hcol1:
-                feet = st.number_input("ft", min_value=0, max_value=6, step=1, key="h_feet", value=5)
-            with hcol2:
-                inches = st.number_input("in", min_value=0, max_value=11, step=1, key="h_inches", value=5)
-        with col2:
-            st.write('Weight')
-            weight = st.number_input("lbs", min_value = 0, max_value=1000, key="weight", value=120)
+        with st.container(border=True, key="body_card"):
+            st.markdown('<p class="serif-italic">2. Body Measurements</p>', unsafe_allow_html=True)
+            col1, col2 = st.columns([3,2], vertical_alignment="bottom")
+            with col1:
+                st.write('Height')
+                hcol1, hcol2 = st.columns(2)
             
-        # bmi = st.number_input("BMI", min_value=10.0, max_value=60.0, value=24.0)
+                with hcol1:
+                    feet = st.number_input("ft", min_value=0, max_value=6, step=1, key="h_feet", value=5)
+                with hcol2:
+                    inches = st.number_input("in", min_value=0, max_value=11, step=1, key="h_inches", value=5)
+            with col2:
+                st.write('Weight')
+                weight = st.number_input("lbs", min_value = 0, max_value=1000, key="weight", value=120)
+                
+            # bmi = st.number_input("BMI", min_value=10.0, max_value=60.0, value=24.0)
 
-        st.markdown('<p class="serif-italic">Diabetes Indicator</p>', unsafe_allow_html=True)
+        with st.container(border=True, key="blood_card"):
+            st.markdown('<p class="serif-italic">3. Diabetes Indicator</p>', unsafe_allow_html=True)
 
-        col1, col2 = st.columns([2,1])
-        with col1:
-            hbA1c = st.number_input("HbA1c Level", min_value=3.0, max_value=15.0, value=5.5)
-        with col2:
-            glucose = st.number_input("Blood Glucose Level", min_value=50, max_value=300, value=120)
+            col1, col2 = st.columns([2,1])
+            with col1:
+                hbA1c = st.number_input("HbA1c Level", min_value=3.0, max_value=15.0, value=5.5)
+            with col2:
+                glucose = st.number_input("Blood Glucose Level", min_value=50, max_value=300, value=120)
 
-        smoking_history = st.selectbox(
-            "Smoking History",
-            ["never", "former", "current", "not current", "ever", "Unknown"]
-        )
-    
-
-        st.markdown('<p class="serif-italic">Lifestyle Habits</p>', unsafe_allow_html=True)
+            smoking_history = st.selectbox(
+                "Smoking History",
+                ["Never", "Former", "Current", "Not Current", "Ever", "Unknown"]
+            )
         
-        smoking = st.segmented_control("Do you smoke?", ["Yes", "No"], selection_mode="single")
-        alcohol = st.segmented_control("Do you consume alcohol?", ["Yes", "No"], selection_mode="single")
-        exercise = st.segmented_control("Do you exercise?", ["Yes", "No"], selection_mode="single")
-        
-        
-        smoking_binary = 1 if smoking == "Yes" else 0
-        alcohol_binary = 1 if alcohol == "Yes" else 0
-        exercise_binary = 1 if exercise == "Yes" else 0
+        with st.container(border=True, key="lifestyle_card"):
+            st.markdown('<p class="serif-italic">4. Lifestyle Habits</p>', unsafe_allow_html=True)
+            
+            smoking = st.segmented_control("Do you smoke?", ["Yes", "No"], selection_mode="single")
+            alcohol = st.segmented_control("Do you consume alcohol?", ["Yes", "No"], selection_mode="single")
+            exercise = st.segmented_control("Do you exercise?", ["Yes", "No"], selection_mode="single")
+            
+            
+            smoking_binary = 1 if smoking == "Yes" else 0
+            alcohol_binary = 1 if alcohol == "Yes" else 0
+            exercise_binary = 1 if exercise == "Yes" else 0
+            
+        with st.container(border=True, key="bp_card"):
+            st.markdown('<p class="serif-italic">5. Blood Pressure</p>', unsafe_allow_html=True)
 
-        st.markdown('<p class="serif-italic">Blood Pressure</p>', unsafe_allow_html=True)
-
-        col1, col2 = st.columns(2)
-        with col1:
-            ap_hi = st.number_input("Systolic Blood Pressure", min_value=80, max_value=250, value=120)
-        with col2:
-            ap_lo = st.number_input("Diastolic Blood Pressure", min_value=40, max_value=150, value=80)
+            col1, col2 = st.columns(2)
+            with col1:
+                ap_hi = st.number_input("Systolic Blood Pressure", min_value=80, max_value=250, value=120)
+            with col2:
+                ap_lo = st.number_input("Diastolic Blood Pressure", min_value=40, max_value=150, value=80)
 
         submit = st.form_submit_button("Predict All Health Risks")
     
@@ -226,12 +255,76 @@ if submit:
         lifestyle_output = "Try to improve consistency with exercise and reduce unhealthy habits."
     else:
         lifestyle_output = "Consider reducing smoking/alcohol and increasing physical activity."
-        
+    
+    cardio_recs = cardio_recommendation(cardio_prediction)
+    cholesterol_recs = cholesterol_recommendation(cholesterol_prediction)
+    bp_recs = bp_recommendation(bp_prediction-1)
+    diabetes_recs = get_diabetes_report(name="User",
+        glucose=glucose,
+        hba1c=hbA1c,
+        bmi=bmi,
+        age=age,
+        hypertension= (bp_output=="Normal"),
+        smoking=smoking == "Yes")
+    # cardio recs
+    st.markdown(f"""
+    <div class="output-card">
+        <h2>{cardio_recs["risk_level"]}</h2>
+        <p>{cardio_recs["summary"]}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("Daily Schedule")
+    for time, category, task in cardio_recs["daily_schedule"]:
+        st.write(f"**{time}** {category} — {task}")
+
+    st.subheader("Personalized Health Tips")
+    for tip in cardio_recs["tips"]:
+        st.write(f"- {tip}")
+    # end of cardio recs
+    
+    # cholesterol recs
+    st.markdown(f"""
+    <div class="output-card">
+        <h2>{cholesterol_recs["risk_level"]}</h2>
+        <p>{cholesterol_recs["summary"]}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("Daily Schedule")
+    for time, category, task in cholesterol_recs["daily_schedule"]:
+        st.write(f"**{time}** {category} — {task}")
+
+    st.subheader("Personalized Health Tips")
+    for tip in cholesterol_recs["tips"]:
+        st.write(f"- {tip}")
+    # end of cholesterol recs
+    
+     # bp recs
+    st.markdown(f"""
+    <div class="output-card">
+        <h2>{bp_recs["risk_level"]}</h2>
+        <p>{bp_recs["summary"]}</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    st.subheader("Daily Schedule")
+    for time, category, task in bp_recs["daily_schedule"]:
+        st.write(f"**{time}** {category} — {task}")
+
+    st.subheader("Personalized Health Tips")
+    for tip in bp_recs["tips"]:
+        st.write(f"- {tip}")
+    # end of bp recs
+    
+    
+    
+    
     with st.container():
         st.markdown(f"""
             <div class="output-container">
                 <div class="outputs">
-                    <p class="serif-italic">Prediction Results</p>
+                    <p class="serif-italic">Prediction Summary</p>
                     <p>Diabetes Risk: <strong>{diabetes_output}</strong></p>
                     <p>Blood Pressure Category: <strong>{bp_output}</strong></p>
                     <p>Cholesterol Level: <strong>{cholesterol_output}</strong></p>
