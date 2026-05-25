@@ -3,6 +3,8 @@ import joblib
 import pandas as pd
 from pathlib import Path
 import time
+from io import BytesIO
+import sys
 
 from recommendations.diabetes import get_diabetes_report
 
@@ -10,17 +12,22 @@ from recommendations.cardio import cardio_recommendation
 from recommendations.bp import bp_recommendation
 from recommendations.cholesterol import cholesterol_recommendation
 
-BASE_DIR = Path(__file__).resolve().parents[2]
-MODEL_DIR = BASE_DIR / "saved_models"
-
-CSS_PATH = Path(__file__).parent / "styles.css"
-st.markdown(f"<style>{CSS_PATH.read_text()}</style>", unsafe_allow_html=True)
+# Automatically add the root directory (FutureFit-AI) to Python's search path
+sys.path.append(str(Path(__file__).resolve().parents[2]))
+from interface_downloadable_cal.build_ics import build_ics
 
 st.set_page_config(
     page_title="FutureFit AI",
     page_icon="🩺",
     layout="centered"
 )
+
+BASE_DIR = Path(__file__).resolve().parents[2]
+MODEL_DIR = BASE_DIR / "saved_models"
+
+CSS_PATH = Path(__file__).parent / "styles.css"
+st.markdown(f"<style>{CSS_PATH.read_text()}</style>", unsafe_allow_html=True)
+
 
 col1, col2 = st.columns([2, 1])
 
@@ -44,7 +51,7 @@ with col1:
     
 
 with col2:
-    st.image("../run.jpeg", use_container_width=True)
+    st.image("src/run.jpeg", use_container_width=True)
 
 def set_bmi_category(input_data, bmi_value):
     if bmi_value < 18.5:
@@ -113,9 +120,9 @@ with st.form("health_form"):
         with st.container(border=True, key="lifestyle_card"):
             st.markdown('<p class="serif-italic">4. Lifestyle Habits</p>', unsafe_allow_html=True)
             
-            smoking = st.segmented_control("Do you smoke?", ["Yes", "No"], selection_mode="single")
-            alcohol = st.segmented_control("Do you consume alcohol?", ["Yes", "No"], selection_mode="single")
-            exercise = st.segmented_control("Do you exercise?", ["Yes", "No"], selection_mode="single")
+            smoking = st.segmented_control("Do you smoke?", ["Yes", "No"], selection_mode="single", key="form_smoke")
+            alcohol = st.segmented_control("Do you consume alcohol?", ["Yes", "No"], selection_mode="single", key="form_alcohol")
+            exercise = st.segmented_control("Do you exercise?", ["Yes", "No"], selection_mode="single", key="form_exercise")
             
             
             smoking_binary = 1 if smoking == "Yes" else 0
@@ -148,8 +155,12 @@ with st.form("health_form"):
         #         </div>
         #     """, unsafe_allow_html=True)
 
-
+if "form_submitted" not in st.session_state:
+    st.session_state.form_submitted = False
 if submit:
+    st.session_state.form_submitted = True
+
+if st.session_state.form_submitted:
     with st.spinner("Analyzing your health profile..."):
         time.sleep(1.2)
         
@@ -280,19 +291,37 @@ if submit:
             </div>
         """, unsafe_allow_html=True)
         
-    
-    
     cardio_recs = cardio_recommendation(cardio_prediction)
     cholesterol_recs = cholesterol_recommendation(cholesterol_prediction)
     bp_recs = bp_recommendation(bp_prediction-1)
-    diabetes_recs = get_diabetes_report(name="User",
+    diabetes_recs = get_diabetes_report(
+        name="User",
         glucose=glucose,
         hba1c=hbA1c,
         bmi=bmi,
         age=age,
-        hypertension= (bp_output=="Normal"),
-        smoking=smoking == "Yes")
+        hypertension=(bp_output == "Normal"),
+        smoking=smoking == "Yes"
+    )
     
+    # -------------------------------------------------------------------------
+    # MASTER CALENDAR SETUP: Initialize master schedule bucket in session state
+    # -------------------------------------------------------------------------
+    st.session_state.custom_schedule = []
+
+    st.write("---")
+    st.subheader("📅 Customize & Export Your Master Schedule")
+    
+    # Render layout configuration bar for the calendar download options
+    col_tz, col_tip = st.columns([1, 2])
+    with col_tz:
+        user_tz = st.selectbox("Select Your Timezone", ["US/Pacific", "US/Eastern", "Europe/London", "Asia/Shanghai"])
+    with col_tip:
+        st.caption("💡 **How it works:** Uncheck any individual task inside the cards below if you want to skip it. Then click the master export button at the bottom of the page to download your custom calendar!")
+
+    # =========================================================================
+    # 1. DIABETES RECOMMENDATIONS SECTION
+    # =========================================================================
     st.markdown(f"""
     <div class="result-card">
         <h2>{diabetes_recs["label"]}</h2>
@@ -304,22 +333,27 @@ if submit:
 
     with col1:
         with st.container(border=True):
-
             st.subheader("Daily Schedule")
-
-            for time, task, category in diabetes_recs["daily"]:
-                st.write(f"**{time}** [{category.upper()}] — {task}")
-            st.button("Add to Calendar", key="diabetes_add_cal")
+            # Loop through diabetes tasks and generate an interactive checkbox for each item
+            for i, (time_str, task, category) in enumerate(diabetes_recs["daily"]):
+                is_checked = st.checkbox(
+                    f"**{time_str}** [{category.upper()}] — {task}", 
+                    value=True, 
+                    key=f"chk_dia_{i}"
+                )
+                # Flatten structure and add to the master container if user checked it
+                if is_checked:
+                    st.session_state.custom_schedule.append((time_str, category.upper(), task))
             
     with col2:
         with st.container(border=True):
-
             st.subheader("Personalized Health Tips")
-
             for tip in diabetes_recs["tips"]:
                 st.write(f"- {tip}")
-    # cardio recs
-    
+
+    # =========================================================================
+    # 2. CARDIOVASCULAR RECOMMENDATIONS SECTION
+    # =========================================================================
     st.markdown(f"""
     <div class="output-card">
         <h2>{cardio_recs["risk_level"]}</h2>
@@ -332,20 +366,25 @@ if submit:
     with col1:
         with st.container(border=True):
             st.subheader("Daily Schedule")
-
-            for time, category, task in cardio_recs["daily_schedule"]:
-                st.write(f"**{time}** {category} — {task}")
-            st.button("Add to Calendar", key="cardio_add_cal")
+            # Loop through cardiovascular tasks and generate an interactive checkbox for each item
+            for i, (time_str, category, task) in enumerate(cardio_recs["daily_schedule"]):
+                is_checked = st.checkbox(
+                    f"**{time_str}** {category} — {task}", 
+                    value=True, 
+                    key=f"chk_cardio_{i}"
+                )
+                if is_checked:
+                    st.session_state.custom_schedule.append((time_str, category, task))
 
     with col2:
         with st.container(border=True):
             st.subheader("Personalized Health Tips")
-
             for tip in cardio_recs["tips"]:
                 st.write(f"- {tip}")
-    # end of cardio recs
     
-    # cholesterol recs
+    # =========================================================================
+    # 3. CHOLESTEROL RECOMMENDATIONS SECTION
+    # =========================================================================
     st.markdown(f"""
     <div class="output-card">
         <h2>{cholesterol_recs["risk_level"]}</h2>
@@ -358,20 +397,25 @@ if submit:
     with col1:
         with st.container(border=True):
             st.subheader("Daily Schedule")
-
-            for time, category, task in cholesterol_recs["daily_schedule"]:
-                st.write(f"**{time}** {category} — {task}")
-            st.button("Add to Calendar", key="chol_add_cal")
+            # Loop through cholesterol tasks and generate an interactive checkbox for each item
+            for i, (time_str, category, task) in enumerate(cholesterol_recs["daily_schedule"]):
+                is_checked = st.checkbox(
+                    f"**{time_str}** {category} — {task}", 
+                    value=True, 
+                    key=f"chk_chol_{i}"
+                )
+                if is_checked:
+                    st.session_state.custom_schedule.append((time_str, category, task))
 
     with col2:
         with st.container(border=True):
             st.subheader("Personalized Health Tips")
-
             for tip in cholesterol_recs["tips"]:
                 st.write(f"- {tip}")
-    # end of cholesterol recs
     
-     # bp recs
+    # =========================================================================
+    # 4. BLOOD PRESSURE RECOMMENDATIONS SECTION
+    # =========================================================================
     st.markdown(f"""
     <div class="output-card">
         <h2>{bp_recs["risk_level"]}</h2>
@@ -384,21 +428,41 @@ if submit:
     with col1:
         with st.container(border=True):
             st.subheader("Daily Schedule")
-
-            for time, category, task in bp_recs["daily_schedule"]:
-                st.write(f"**{time}** {category} — {task}")
-            st.button("Add to Calendar", key="bp_add_cal")
-            
+            # Loop through blood pressure tasks and generate an interactive checkbox for each item
+            for i, (time_str, category, task) in enumerate(bp_recs["daily_schedule"]):
+                is_checked = st.checkbox(
+                    f"**{time_str}** {category} — {task}", 
+                    value=True, 
+                    key=f"chk_bp_{i}"
+                )
+                if is_checked:
+                    st.session_state.custom_schedule.append((time_str, category, task))
 
     with col2:
         with st.container(border=True):
             st.subheader("Personalized Health Tips")
-
             for tip in bp_recs["tips"]:
                 st.write(f"- {tip}")
-    # end of bp recs
+
+    # =========================================================================
+    # MASTER DOWNLOAD GENERATOR: Final action button to export checked elements
+    # =========================================================================
+    st.write("---")
     
+    # Using an empty placeholder container to dynamically render the master button
+    download_placeholder = st.container()
     
-    
-    
-    
+    if st.session_state.custom_schedule:
+        final_ics_bytes = build_ics(st.session_state.custom_schedule, timezone_str=user_tz)
+        
+        # Render the button inside the placeholder container
+        download_placeholder.download_button(
+            label=f"⚡ Download My Custom Schedule ({len(st.session_state.custom_schedule)} Tasks)",
+            data=BytesIO(final_ics_bytes),
+            file_name="my_custom_health_schedule.ics",
+            mime="text/calendar",
+            key="final_master_download_btn",
+            use_container_width=True
+        )
+    else:
+        download_placeholder.warning("⚠️ You have unchecked all tasks! Please check at least one task to export your calendar.")
