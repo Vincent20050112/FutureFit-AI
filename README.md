@@ -8,6 +8,8 @@ FutureFit AI is a machine learning health prediction system that uses user healt
 - Cardiovascular Risk  
 - Lifestyle Score  
 
+Try out our website:
+https://futurefit-ai-team03.streamlit.app/#cholesterol
 
 Step 1: install requirements 
 pip install -r requirements.txt
